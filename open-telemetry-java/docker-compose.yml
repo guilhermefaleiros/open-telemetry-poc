@@ -1,0 +1,52 @@
+version: "3.6"
+services:
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 14268:14268
+      - 14250:14250
+      - 9411:9411
+    networks:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/dbdata:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=opentelemetry
+      - MYSQL_USER=administrator
+      - MYSQL_PASSWORD=administrator
+    networks:
+      - app
+
+  service-1:
+    build: service-1
+    ports:
+      - 8080:8080
+    networks:
+      - app
+    depends_on:
+      - mysql
+
+  service-2:
+    build: service-2
+    ports:
+      - 8081:8081
+    networks:
+      - app
+    depends_on:
+      - mysql
+
+networks:
+  app:
+    driver: bridge
